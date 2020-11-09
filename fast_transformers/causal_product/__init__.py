@@ -5,6 +5,7 @@
 #
 
 import torch
+from torch.cuda.amp import custom_fwd, custom_bwd
 
 from .causal_product_cpu import causal_dot_product as causal_dot_product_cpu, \
     causal_dot_backward as causal_dot_backward_cpu
@@ -30,6 +31,7 @@ class CausalDotProduct(torch.autograd.Function):
     }
 
     @staticmethod
+    @custom_fwd
     def forward(ctx, Q, K, V):
         # Save the inputs for the gradient computation
         ctx.save_for_backward(Q, K, V)
@@ -51,6 +53,7 @@ class CausalDotProduct(torch.autograd.Function):
         return product
 
     @staticmethod
+    @custom_bwd
     def backward(ctx, grad_out):
         # Extract the saved tensors
         Q, K, V = ctx.saved_tensors
